@@ -7,57 +7,23 @@ namespace Gun.Core
 {
     public class HAM
     {
-        public static Dictionary<string, Node> Mix(IDictionary<string, Node> change, IDictionary<string, Node> graph)
+        
+
+        public static HAMStateResult Run(long machineState, double incomingState, double currentState, JToken incomingValue, JToken currentValue)
         {
-
-            var machine = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var diff = new Dictionary<string, Node>();
-
-            foreach (var soul in change.Keys)
-            {
-                var node = change[soul];
-                foreach(var key in node.Properties.Keys)
-                {
-                    var incomingValue = node.Properties[key];
-                    var incomingState = node.Metadata.HAMState.ContainsKey(key) ? node.Metadata.HAMState[key] : Double.NegativeInfinity;
-                    var currentNode = graph.ContainsKey(soul) ? graph[soul] : new Node(soul);
-                    var currentState = currentNode.Metadata.HAMState.ContainsKey(key) ? currentNode.Metadata.HAMState[key] : Double.NegativeInfinity;
-                    var currentValue = currentNode.Properties.ContainsKey(key) ? currentNode.Properties[key] : JToken.Parse("{}");
-                    var ham = HAM.Run(machine, incomingState, currentState, incomingValue, currentValue);
-                    if((ham & HAMState.Incoming) != HAMState.Incoming)
-                    {
-                        if((ham & HAMState.Defer) == HAMState.Defer)
-                        {
-
-                        }
-                        break;
-                    }
-                    diff[soul] = diff.ContainsKey(soul) ? diff[soul] : new Node(soul);
-                    graph[soul] = graph.ContainsKey(soul) ? graph[soul] : new Node(soul);
-                    graph[soul].Properties[key] = diff[soul].Properties[key] = incomingValue;
-                    graph[soul].Metadata.HAMState[key] = diff[soul].Metadata.HAMState[key] = incomingState;
-
-                }
-            }
-
-            return diff;
-        }
-
-        public static HAMState Run(long machineState, double incomingState, double currentState, JToken incomingValue, JToken currentValue)
-        {
-            HAMState res = 0L;
+            HAMStateResult res = 0L;
 
             if (machineState < incomingState)
             {
-                res = res | HAMState.Defer;    
+                res = res | HAMStateResult.Defer;    
             }
             if (incomingState < currentState)
             {
-                res = res | HAMState.Historical;
+                res = res | HAMStateResult.Historical;
             }
             if (currentState < incomingState)
             {
-                res = res | HAMState.Converge | HAMState.Incoming; 
+                res = res | HAMStateResult.Converge | HAMStateResult.Incoming; 
             }
             if (incomingState == currentState)
             {
@@ -66,25 +32,26 @@ namespace Gun.Core
 
                 if (incomingStr == currentStr)
                 {
-                    res = res | HAMState.State;
+                    res = res | HAMStateResult.State;
                 }
 
                 if (string.Compare(incomingStr , currentStr) < 0)
                 {
-                    res = res | HAMState.Converge | HAMState.Current;
+                    res = res | HAMStateResult.Converge | HAMStateResult.Current;
                 }
 
                 if (string.Compare(currentStr, incomingStr) < 0)
                 {
-                    res = res | HAMState.Converge | HAMState.Incoming;
+                    res = res | HAMStateResult.Converge | HAMStateResult.Incoming;
                 }
             }
 
             return res;
 
         }
+    }
 
-        public enum HAMState
+     public enum HAMStateResult
         {
             Defer = 0x1,
             Historical = 0x10,
@@ -93,5 +60,4 @@ namespace Gun.Core
             State = 0x10000,
             Current = 0x100000
         }
-    }
 }

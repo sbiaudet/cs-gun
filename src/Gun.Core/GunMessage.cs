@@ -10,14 +10,26 @@ namespace Gun.Core
     {
         [JsonProperty("#")]
         public string Key { get; set; }
-
+        
+        [JsonProperty("@")]
+        public string At { get; set; }
+        
         [JsonProperty("put")]
 
         public IDictionary<string, Node> PutChanges { get; set; } = new Dictionary<string, Node>();
 
         [JsonProperty("get")]
 
-        public IDictionary<string, Node> GetChanges { get; set; } = new Dictionary<string, Node>();
+        public GetNode Get { get; set; }
+
+    }
+
+    public class GetNode {
+        [JsonProperty("#")]
+        public string Soul { get; set; }
+        [JsonProperty(".")]
+        public string Key { get; set; }
+        
 
     }
 }

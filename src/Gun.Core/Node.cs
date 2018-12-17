@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -40,6 +41,14 @@ namespace Gun.Core
     [JsonDictionary()]
     public class HAMState : Dictionary<string, double>
     {
-
+        public HAMState()
+        {
+            
+        }
+        
+        public HAMState(IDictionary<string, double> dictionary) : base(dictionary)
+        {
+            
+        }
     }
 }

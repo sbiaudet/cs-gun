@@ -4,7 +4,8 @@
 <script>
 var graph = {};
 var dup = Dup();
-var peer = new WebSocket('ws://localhost:8080');
+var uri = "wss://" + window.location.host + "/gun";
+var peer = new WebSocket(uri);
 peer.onopen = function(o){ 
 	console.log('open', o);
   setTimeout(function(){

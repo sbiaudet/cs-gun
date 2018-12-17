@@ -12,7 +12,7 @@ namespace Gun.AspNet.Core
     public class GunHandler : WebSocketHandler
     {
         private readonly IDuplicateManager _duplicateManager;
-        private readonly IDictionary<string, Node> _graph = new Dictionary<string, Node>();
+        private Graph _graph = new Graph();
 
         public GunHandler(WebSocketConnectionManager webSocketConnectionManager, IDuplicateManager duplicateManager) : base(webSocketConnectionManager)
         {
@@ -31,9 +31,23 @@ namespace Gun.AspNet.Core
 
             if(msg.PutChanges.Count != 0)
             {
-                var change = HAM.Mix(msg.PutChanges, _graph);
+                var change = _graph.Mix(msg.PutChanges);
             }
             
+            if(msg.Get != null)
+            {
+                var ack = _graph.Get(msg.Get);
+                if (ack != null){
+                    var response = new GunMessage() 
+                    { 
+                        Key =_duplicateManager.Track(DuplicateManager.Random()),
+                        At = msg.Key,
+                        PutChanges = ack
+                    };
+                     await this.SendMessageToAllAsync(JsonConvert.SerializeObject(response));
+                }
+
+            }
             await this.SendMessageToAllAsync(JsonConvert.SerializeObject(msg));
           
         }
