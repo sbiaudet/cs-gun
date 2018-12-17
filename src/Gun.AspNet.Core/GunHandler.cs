@@ -22,23 +22,23 @@ namespace Gun.AspNet.Core
         public async override Task ReceiveAsync(WebSocket socket, WebSocketReceiveResult result, byte[] buffer)
         {
             var reader = new StreamReader(new MemoryStream(buffer), Encoding.Default);
-            
+
             var msg = new JsonSerializer().Deserialize<GunMessage>(new JsonTextReader(reader));
 
             if (_duplicateManager.Check(msg.Key)) return;
 
             _duplicateManager.Track(msg.Key);
 
-            if(msg.PutChanges.Count != 0)
+            if(msg is PutMessage)
             {
-                var change = _graph.Mix(msg.PutChanges);
+                var change = _graph.Mix(((PutMessage)msg).PutChanges);
             }
             
-            if(msg.Get != null)
+            if(msg is GetMessage)
             {
-                var ack = _graph.Get(msg.Get);
+                var ack = _graph.Get(((GetMessage)msg).Get);
                 if (ack != null){
-                    var response = new GunMessage() 
+                    var response = new PutMessage() 
                     { 
                         Key =_duplicateManager.Track(DuplicateManager.Random()),
                         At = msg.Key,
